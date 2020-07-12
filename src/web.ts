@@ -8,8 +8,18 @@ export class CapacitorCalendarWeb extends WebPlugin implements CapacitorCalendar
       platforms: ['web']
     });
   }
-  
+
   async createEvent(...args: any): Promise<any> {
+    console.log(args);
+    throw new Error('Method is not implemented for web');
+  }
+
+  async findEvent(...args: any): Promise<any> {
+    console.log(args);
+    throw new Error('Method is not implemented for web');
+  }
+
+  async deleteEvent(...args: any): Promise<any> {
     console.log(args);
     throw new Error('Method is not implemented for web');
   }
