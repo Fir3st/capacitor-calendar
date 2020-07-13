@@ -1,6 +1,9 @@
 /node_modules
 /dist
 /build
-/android/build
+android/build/
+android/.gradle/
+android/.idea/
 /.vscode
 /.idea
+android/*.iml
