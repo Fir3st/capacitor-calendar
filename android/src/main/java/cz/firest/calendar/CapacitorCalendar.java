@@ -1,8 +1,10 @@
 package cz.firest.calendar;
 
+import android.Manifest;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.CalendarContract;
@@ -12,6 +14,8 @@ import android.provider.CalendarContract.Calendars;
 import android.text.TextUtils;
 import android.text.format.DateUtils;
 import android.util.Log;
+
+import androidx.core.app.ActivityCompat;
 
 import com.getcapacitor.JSObject;
 import com.getcapacitor.NativePlugin;
@@ -88,8 +92,17 @@ class Event {
     }
 }
 
-@NativePlugin()
+@NativePlugin(
+    permissions = {
+        Manifest.permission.READ_CALENDAR,
+        Manifest.permission.WRITE_CALENDAR,
+    },
+    requestCodes = {
+        CapacitorCalendar.REQUEST_CALENDAR_PERMISSION
+    }
+)
 public class CapacitorCalendar extends Plugin {
+    static final int REQUEST_CALENDAR_PERMISSION = 42;
     public static final String LOG_TAG = "Calendar";
 
     protected enum KeyIndex {
@@ -118,8 +131,35 @@ public class CapacitorCalendar extends Plugin {
         ATTENDEES_STATUS
     }
 
+    @Override
+    protected void handleRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.handleRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_CALENDAR_PERMISSION) {
+            boolean permissionsGranted = true;
+            for (int grantResult: grantResults) {
+                if (grantResult != 0) {
+                    permissionsGranted = false;
+                }
+            }
+
+            PluginCall savedCall = getSavedCall();
+            if (!permissionsGranted) {
+                savedCall.reject("permission failed");
+            }
+        }
+    }
+
     @PluginMethod()
     public void createEvent(PluginCall call) {
+        if (!hasRequiredPermissions()) {
+            saveCall(call);
+            pluginRequestAllPermissions();
+        } else {
+            createCalendarEvent(call);
+        }
+    }
+
+    protected void createCalendarEvent(PluginCall call) {
         ContentResolver cr = this.getActivity().getContentResolver();
         ContentValues values = new ContentValues();
         JSObject data = call.getData();
@@ -146,6 +186,9 @@ public class CapacitorCalendar extends Plugin {
             JSObject ret = new JSObject();
             ret.put("id", createdEventID);
             call.resolve(ret);
+        } catch (SecurityException e) {
+            Log.e(LOG_TAG, "Permission denied", e);
+            call.error(e.getMessage());
         } catch (Exception e) {
             Log.e(LOG_TAG, "Fail to create an event", e);
             call.error(e.getMessage());
@@ -154,16 +197,38 @@ public class CapacitorCalendar extends Plugin {
 
     @PluginMethod()
     public void findEvent(PluginCall call) {
+        if (!hasRequiredPermissions()) {
+            saveCall(call);
+            pluginRequestAllPermissions();
+        } else {
+            findCalendarEvents(call);
+        }
+    }
+
+    protected void findCalendarEvents(PluginCall call) {
         JSObject data = call.getData();
         JSObject ret = new JSObject();
-
-        String eventId = data.getString("id", null);
-        String title = data.getString("title", null);
-        String location = data.getString("location", null);
-        String notes = data.getString("notes", null);
         Long now = new Date().getTime();
-        Long startFrom = now - DateUtils.DAY_IN_MILLIS * 10000;
-        Long startTo = now + DateUtils.DAY_IN_MILLIS * 10000;
+
+        String eventId = null;
+        String title = null;
+        String location = null;
+        String notes = null;
+        Long startFrom = 0l;
+        Long startTo = 0l;
+
+        try {
+            eventId = data.getString("id", null);
+            title = data.getString("title", null);
+            location = data.getString("location", null);
+            notes = data.getString("notes", null);
+
+            startFrom = data.has("startDate") ? data.getLong("startDate") : now - DateUtils.DAY_IN_MILLIS * 10000;
+            startTo = data.has("endDate") ? data.getLong("endDate") : now + DateUtils.DAY_IN_MILLIS * 10000;
+        } catch (Exception e) {
+            Log.e(LOG_TAG, "Fail to parse data", e);
+            call.error(e.getMessage());
+        }
 
         Event[] instances = fetchEventInstances(eventId, title, location, notes, startFrom, startTo);
 
@@ -206,22 +271,46 @@ public class CapacitorCalendar extends Plugin {
 
     @PluginMethod()
     public void deleteEvent(PluginCall call) {
+        if (!hasRequiredPermissions()) {
+            saveCall(call);
+            pluginRequestAllPermissions();
+        } else {
+            deleteCalendarEvents(call);
+        }
+    }
+
+    protected void deleteCalendarEvents(PluginCall call) {
         ContentResolver cr = this.getActivity().getContentResolver();
         JSObject data = call.getData();
         JSObject ret = new JSObject();
-        String title = data.getString("title", null);
-        String location = data.getString("location", null);
-        String notes = data.getString("notes", null);
         Long now = new Date().getTime();
-        Long startFrom = now - DateUtils.DAY_IN_MILLIS * 10000;
-        Long startTo = now + DateUtils.DAY_IN_MILLIS * 10000;
 
-        Event[] events = fetchEventInstances(null, title, location, notes, startFrom, startTo);
+        String eventId = null;
+        String title = null;
+        String location = null;
+        String notes = null;
+        Long startFrom = 0l;
+        Long startTo = 0l;
+
+        try {
+            eventId = data.getString("id", null);
+            title = data.getString("title", null);
+            location = data.getString("location", null);
+            notes = data.getString("notes", null);
+
+            startFrom = data.has("startDate") ? data.getLong("startDate") : now - DateUtils.DAY_IN_MILLIS * 10000;
+            startTo = data.has("endDate") ? data.getLong("endDate") : now + DateUtils.DAY_IN_MILLIS * 10000;
+        } catch (Exception e) {
+            Log.e(LOG_TAG, "Fail to parse data", e);
+            call.error(e.getMessage());
+        }
+
+        Event[] events = fetchEventInstances(eventId, title, location, notes, startFrom, startTo);
         int nrDeletedRecords = 0;
         if (events != null) {
             for (Event event : events) {
                 Uri eventUri = ContentUris.withAppendedId(Events.CONTENT_URI, Integer.parseInt(event.eventId));
-                nrDeletedRecords = cr.delete(eventUri, null, null);
+                nrDeletedRecords += cr.delete(eventUri, null, null);
             }
         }
 
@@ -319,7 +408,7 @@ public class CapacitorCalendar extends Plugin {
         return this.initContentProviderKeys().get(index);
     }
 
-    private Map<String, Event> fetchEventsAsMap(Event[] instances, String calendarId) {
+    protected Map<String, Event> fetchEventsAsMap(Event[] instances, String calendarId) {
         // Only selecting from active calendars, no active calendars = no events.
         List<String> activeCalendarIds = Arrays.asList(getActiveCalendarIds());
         if (activeCalendarIds.isEmpty()) {
@@ -423,7 +512,7 @@ public class CapacitorCalendar extends Plugin {
         return eventsMap;
     }
 
-    private String[] getActiveCalendarIds() {
+    protected String[] getActiveCalendarIds() {
         Cursor cursor = queryCalendars(new String[]{
                         this.getKey(KeyIndex.CALENDARS_ID)
                 },
@@ -453,14 +542,24 @@ public class CapacitorCalendar extends Plugin {
 
     protected Cursor queryCalendars(String[] projection, String selection,
                                     String[] selectionArgs, String sortOrder) {
-        return this.getActivity().getContentResolver().query(
-                CalendarContract.Calendars.CONTENT_URI, projection, selection, selectionArgs,
-                sortOrder);
+        try {
+            return this.getActivity().getContentResolver().query(
+                CalendarContract.Calendars.CONTENT_URI, projection, selection, selectionArgs, sortOrder);
+        }  catch (SecurityException e) {
+            Log.e(LOG_TAG, "Permission denied", e);
+            return null;
+        }
+
     }
 
     protected Cursor queryEvents(String[] projection, String selection,
                                  String[] selectionArgs, String sortOrder) {
-        return this.getActivity().getContentResolver().query(
+        try {
+            return this.getActivity().getContentResolver().query(
                 Events.CONTENT_URI, projection, selection, selectionArgs, sortOrder);
+        }  catch (SecurityException e) {
+            Log.e(LOG_TAG, "Permission denied", e);
+            return null;
+        }
     }
 }
