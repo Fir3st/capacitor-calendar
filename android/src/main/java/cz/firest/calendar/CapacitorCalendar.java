@@ -235,6 +235,7 @@ public class CapacitorCalendar extends Plugin {
         if (instances == null) {
             ret.put("events", new JSONArray());
             call.resolve(ret);
+            return;
         }
 
         JSONArray result = new JSONArray();
