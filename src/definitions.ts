@@ -22,4 +22,5 @@ export interface CapacitorCalendarPlugin {
   findEvent(options: CalendarEventOptions): Promise<any>
   deleteEvent(options: DeleteEventOptions): Promise<any>
   deleteEventById(options: { id: string }): Promise<any>
+  updateEvent(options: CalendarEventOptions): Promise<any>
 }

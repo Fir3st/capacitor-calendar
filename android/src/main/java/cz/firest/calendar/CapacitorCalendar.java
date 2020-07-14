@@ -235,8 +235,8 @@ public class CapacitorCalendar extends Plugin {
             location = data.getString("location", null);
             notes = data.getString("notes", null);
 
-            startFrom = data.has("startDate") ? data.getLong("startDate") : now - DateUtils.DAY_IN_MILLIS * 10000;
-            startTo = data.has("endDate") ? data.getLong("endDate") : now + DateUtils.DAY_IN_MILLIS * 10000;
+            startFrom = data.has("startDate") ? data.getLong("startDate") : now - DateUtils.DAY_IN_MILLIS * 1000;
+            startTo = data.has("endDate") ? data.getLong("endDate") : now + DateUtils.DAY_IN_MILLIS * 1000;
         } catch (Exception e) {
             Log.e(LOG_TAG, "Fail to parse data", e);
             call.reject(e.getMessage());
@@ -311,8 +311,8 @@ public class CapacitorCalendar extends Plugin {
             location = data.getString("location", null);
             notes = data.getString("notes", null);
 
-            startFrom = data.has("startDate") ? data.getLong("startDate") : now - DateUtils.DAY_IN_MILLIS * 10000;
-            startTo = data.has("endDate") ? data.getLong("endDate") : now + DateUtils.DAY_IN_MILLIS * 10000;
+            startFrom = data.has("startDate") ? data.getLong("startDate") : now - DateUtils.DAY_IN_MILLIS * 1000;
+            startTo = data.has("endDate") ? data.getLong("endDate") : now + DateUtils.DAY_IN_MILLIS * 1000;
         } catch (Exception e) {
             Log.e(LOG_TAG, "Fail to parse data", e);
             call.reject(e.getMessage());
@@ -368,6 +368,86 @@ public class CapacitorCalendar extends Plugin {
 
         ret.put("result", deleted > 0);
         call.resolve(ret);
+    }
+
+    @PluginMethod()
+    public void updateEvent(PluginCall call) {
+        if (!hasRequiredPermissions()) {
+            saveCall(call);
+            pluginRequestAllPermissions();
+        } else {
+            updateCalendarEvent(call);
+        }
+    }
+
+    protected void updateCalendarEvent(PluginCall call) {
+        JSObject data = call.getData();
+        JSObject ret = new JSObject();
+        String id = data.getString("id", null);
+
+        if (id == null)
+            throw new IllegalArgumentException("Event id not specified.");
+
+        long evDtStart = -1;
+        long evDtEnd = -1;
+        String title = null;
+        String description = null;
+        String location = null;
+        {
+            Cursor cur = queryEvents(new String[] { Events.DTSTART, Events.DTEND, Events.TITLE, Events.DESCRIPTION, Events.EVENT_LOCATION },
+                    Events._ID + " = ?",
+                    new String[] { id },
+                    Events.DTSTART);
+            if (cur.moveToNext()) {
+                evDtStart = cur.getLong(0);
+                evDtEnd = cur.getLong(1);
+                title = cur.getString(2);
+                description = cur.getString(3);
+                location = cur.getString(4);
+            }
+            cur.close();
+        }
+        if (evDtStart == -1)
+            throw new RuntimeException("Could not find event.");
+
+        ContentValues values = new ContentValues();
+        try {
+            Long startTime = data.has("startDate") ? data.getLong("startDate") : evDtStart;
+            Long endTime = data.has("endDate") ? data.getLong("endDate") : evDtEnd;
+
+            final boolean allDayEvent = isAllDayEvent(new Date(startTime), new Date(endTime));
+            if (allDayEvent) {
+                values.put(Events.EVENT_TIMEZONE, "UTC");
+                values.put(Events.ALL_DAY, true);
+                values.put(Events.DTSTART, startTime + TimeZone.getDefault().getOffset(startTime));
+                values.put(Events.DTEND, endTime + TimeZone.getDefault().getOffset(endTime));
+            } else {
+                values.put(Events.EVENT_TIMEZONE, TimeZone.getDefault().getID());
+                values.put(Events.ALL_DAY, false);
+                values.put(Events.DTSTART, startTime);
+                values.put(Events.DTEND, endTime);
+            }
+
+            values.put(Events.TITLE, data.has("title") ? data.getString("title") : title);
+            values.put(Events.DESCRIPTION, data.has("notes") ? data.getString("notes") : description);
+            values.put(Events.EVENT_LOCATION, data.has("location") ? data.getString("location") : location);
+        } catch (Exception e) {
+            Log.e(LOG_TAG, "Fail to parse data", e);
+            call.reject(e.getMessage());
+        }
+
+        try {
+            int updated = this.getActivity().getContentResolver()
+                    .update(ContentUris.withAppendedId(Events.CONTENT_URI, Long.valueOf(id)), values, null, null);
+            ret.put("result", updated > 0);
+            call.resolve(ret);
+        } catch (SecurityException e) {
+            Log.e(LOG_TAG, "Permission denied", e);
+            call.error(e.getMessage());
+        } catch (Exception e) {
+            Log.e(LOG_TAG, "Fail to create an event", e);
+            call.error(e.getMessage());
+        }
     }
 
     protected EnumMap<KeyIndex, String> initContentProviderKeys() {
