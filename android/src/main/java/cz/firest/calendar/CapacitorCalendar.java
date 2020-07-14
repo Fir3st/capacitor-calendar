@@ -165,9 +165,21 @@ public class CapacitorCalendar extends Plugin {
         JSObject data = call.getData();
 
         try {
-            values.put(Events.EVENT_TIMEZONE, TimeZone.getDefault().getID());
-            values.put(Events.DTSTART, data.has("startDate") ? data.getLong("startDate") : new Date().getTime());
-            values.put(Events.DTEND, data.has("endDate") ? data.getLong("endDate") : new Date().getTime());
+            Long startTime = data.has("startDate") ? data.getLong("startDate") : new Date().getTime();
+            Long endTime = data.has("endDate") ? data.getLong("endDate") : new Date().getTime();
+
+            final boolean allDayEvent = isAllDayEvent(new Date(startTime), new Date(endTime));
+            if (allDayEvent) {
+                values.put(Events.EVENT_TIMEZONE, "UTC");
+                values.put(Events.ALL_DAY, true);
+                values.put(Events.DTSTART, startTime + TimeZone.getDefault().getOffset(startTime));
+                values.put(Events.DTEND, endTime + TimeZone.getDefault().getOffset(endTime));
+            } else {
+                values.put(Events.EVENT_TIMEZONE, TimeZone.getDefault().getID());
+                values.put(Events.DTSTART, startTime);
+                values.put(Events.DTEND, endTime);
+            }
+
             values.put(Events.TITLE, call.getString("title", ""));
             values.put(Events.DESCRIPTION, call.getString("notes", ""));
             values.put(Events.EVENT_LOCATION, call.getString("location", ""));
@@ -175,7 +187,7 @@ public class CapacitorCalendar extends Plugin {
             values.put(CalendarContract.Events.CALENDAR_ID, 1);
         } catch (Exception e) {
             Log.e(LOG_TAG, "Fail to parse data", e);
-            call.error(e.getMessage());
+            call.reject(e.getMessage());
         }
 
         try {
@@ -227,7 +239,7 @@ public class CapacitorCalendar extends Plugin {
             startTo = data.has("endDate") ? data.getLong("endDate") : now + DateUtils.DAY_IN_MILLIS * 10000;
         } catch (Exception e) {
             Log.e(LOG_TAG, "Fail to parse data", e);
-            call.error(e.getMessage());
+            call.reject(e.getMessage());
         }
 
         Event[] instances = fetchEventInstances(eventId, title, location, notes, startFrom, startTo);
@@ -303,7 +315,7 @@ public class CapacitorCalendar extends Plugin {
             startTo = data.has("endDate") ? data.getLong("endDate") : now + DateUtils.DAY_IN_MILLIS * 10000;
         } catch (Exception e) {
             Log.e(LOG_TAG, "Fail to parse data", e);
-            call.error(e.getMessage());
+            call.reject(e.getMessage());
         }
 
         Event[] events = fetchEventInstances(eventId, title, location, notes, startFrom, startTo);
@@ -316,6 +328,45 @@ public class CapacitorCalendar extends Plugin {
         }
 
         ret.put("result", nrDeletedRecords > 0);
+        call.resolve(ret);
+    }
+
+    @PluginMethod()
+    public void deleteEventById(PluginCall call) {
+        if (!hasRequiredPermissions()) {
+            saveCall(call);
+            pluginRequestAllPermissions();
+        } else {
+            deleteCalendarEventById(call);
+        }
+    }
+
+    protected void deleteCalendarEventById(PluginCall call) {
+        JSObject data = call.getData();
+        JSObject ret = new JSObject();
+        String id = data.getString("id", null);
+
+        if (id == null)
+            throw new IllegalArgumentException("Event id not specified.");
+
+        long evDtStart = -1;
+        {
+            Cursor cur = queryEvents(new String[] { Events.DTSTART },
+                    Events._ID + " = ?",
+                    new String[] { id },
+                    Events.DTSTART);
+            if (cur.moveToNext()) {
+                evDtStart = cur.getLong(0);
+            }
+            cur.close();
+        }
+        if (evDtStart == -1)
+            throw new RuntimeException("Could not find event.");
+
+        int deleted = this.getActivity().getContentResolver()
+                .delete(ContentUris.withAppendedId(Events.CONTENT_URI, Long.valueOf(id)), null, null);
+
+        ret.put("result", deleted > 0);
         call.resolve(ret);
     }
 
@@ -562,5 +613,9 @@ public class CapacitorCalendar extends Plugin {
             Log.e(LOG_TAG, "Permission denied", e);
             return null;
         }
+    }
+
+    public static boolean isAllDayEvent(final Date startDate, final Date endDate) {
+        return ((endDate.getTime() - startDate.getTime()) % (24 * 60 * 60 * 1000) == 0);
     }
 }
