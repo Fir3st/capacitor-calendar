@@ -42,8 +42,6 @@ public class CapacitorCalendar: CAPPlugin {
 
         let eventStartDate = Date(timeIntervalSince1970: startDate / 1000);
         
-        print("\(title) \(location) \(notes) \(eventStartDate)")
-        
         store.requestAccess(to: .event) { (accessGranted: Bool, error: Error?) in
             if error == nil {
                 let event = EKEvent.init(eventStore: self.store)
@@ -163,13 +161,13 @@ public class CapacitorCalendar: CAPPlugin {
         var location = call.getString("location") ?? ""
         var notes = call.getString("notes") ?? ""
 
-        let startDate:Double = call.getDouble("startDate") ?? Date().addingTimeInterval(TimeInterval(-1 * self.SEARCH_LIMIT_INTERVAL)).timeIntervalSince1970
+        let startDate:Double = call.getDouble("startDate") ?? Date().addingTimeInterval(TimeInterval(-1 * self.SEARCH_LIMIT_INTERVAL)).timeIntervalSince1970 * 1000;
         
-        let endDate:Double = call.getDouble("endDate") ?? Date().addingTimeInterval(TimeInterval(self.SEARCH_LIMIT_INTERVAL)).timeIntervalSince1970
+        let endDate:Double = call.getDouble("endDate") ?? Date().addingTimeInterval(TimeInterval(self.SEARCH_LIMIT_INTERVAL)).timeIntervalSince1970 * 1000
         
-        let eventStartDate = Date(timeIntervalSince1970: startDate)
-        let eventEndDate = Date(timeIntervalSince1970: endDate)
-
+        let eventStartDate = Date(timeIntervalSince1970: startDate / 1000)
+        let eventEndDate = Date(timeIntervalSince1970: endDate / 1000)
+        
         store.requestAccess(to: .event) { (accessGranted: Bool, error: Error?) in
             if error == nil {
                 let calendars = self.store.calendars(for: EKEntityType.event)
