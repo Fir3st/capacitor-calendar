@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.CalendarContract;
@@ -21,6 +22,8 @@ import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 
 import org.json.JSONArray;
+import org.json.JSONException;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -41,6 +44,7 @@ import java.util.TimeZone;
 )
 public class CapacitorCalendar extends Plugin {
     static final int REQUEST_CALENDAR_PERMISSION = 42;
+    static final Integer RESULT_CODE_OPENCAL = 1;
     public static final String LOG_TAG = "Calendar";
 
     protected enum KeyIndex {
@@ -83,6 +87,30 @@ public class CapacitorCalendar extends Plugin {
             PluginCall savedCall = getSavedCall();
             if (!permissionsGranted) {
                 savedCall.reject("permission failed");
+            }
+        }
+    }
+
+    @PluginMethod()
+    public void openCalendar(PluginCall call) {
+        if (!hasRequiredPermissions()) {
+            saveCall(call);
+            pluginRequestAllPermissions();
+        } else {
+            try {
+                JSObject data = call.getData();
+                final Long millis = data.has("date") ? data.getLong("date") : new Date().getTime();
+
+                Uri.Builder builder = CalendarContract.CONTENT_URI.buildUpon();
+                builder.appendPath("time");
+                ContentUris.appendId(builder, millis);
+                final Intent intent = new Intent(Intent.ACTION_VIEW).setData(builder.build());
+                this.startActivityForResult(call, intent, RESULT_CODE_OPENCAL);
+
+                call.success();
+            } catch (JSONException e) {
+                System.err.println("Exception: " + e.getMessage());
+                call.error(e.getMessage());
             }
         }
     }
