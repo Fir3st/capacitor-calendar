@@ -18,7 +18,7 @@ export interface DeleteEventOptions {
 }
 
 export interface CapacitorCalendarPlugin {
-  openCalendar(options: { date: number }): Promise<any>
+  openCalendar(options?: { date: number }): Promise<any>
   createEvent(options: CalendarEventOptions): Promise<any>
   findEvent(options: CalendarEventOptions): Promise<any>
   deleteEvent(options: DeleteEventOptions): Promise<any>
