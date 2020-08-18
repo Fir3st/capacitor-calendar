@@ -146,11 +146,13 @@ public class CapacitorCalendar extends Plugin {
                 values.put(Events.DTEND, endTime);
             }
 
+            int calendarId = getDefaultCalendarId();
+
             values.put(Events.TITLE, call.getString("title", ""));
             values.put(Events.DESCRIPTION, call.getString("notes", ""));
             values.put(Events.EVENT_LOCATION, call.getString("location", ""));
             values.put(Events.AVAILABILITY, Events.AVAILABILITY_BUSY);
-            values.put(CalendarContract.Events.CALENDAR_ID, 1);
+            values.put(CalendarContract.Events.CALENDAR_ID, calendarId);
         } catch (Exception e) {
             Log.e(LOG_TAG, "Fail to parse data", e);
             call.reject(e.getMessage());
@@ -171,6 +173,20 @@ public class CapacitorCalendar extends Plugin {
             Log.e(LOG_TAG, "Fail to create an event", e);
             call.error(e.getMessage());
         }
+    }
+
+    protected int getDefaultCalendarId() throws Exception {
+        int calendarId;
+
+        String[] calendars = getActiveCalendarIds();
+
+        if (calendars != null && calendars.length > 0) {
+            calendarId = Integer.parseInt(calendars[0].trim());
+        } else {
+            throw new Exception("No calendars found.");
+        }
+
+        return calendarId;
     }
 
     @PluginMethod()
@@ -194,6 +210,7 @@ public class CapacitorCalendar extends Plugin {
         String notes = null;
         Long startFrom = 0l;
         Long startTo = 0l;
+        int calendarId = 1;
 
         try {
             eventId = data.getString("id", null);
@@ -203,6 +220,7 @@ public class CapacitorCalendar extends Plugin {
 
             startFrom = data.has("startDate") ? data.getLong("startDate") : now - DateUtils.DAY_IN_MILLIS * 1000;
             startTo = data.has("endDate") ? data.getLong("endDate") : now + DateUtils.DAY_IN_MILLIS * 1000;
+            calendarId = getDefaultCalendarId();
         } catch (Exception e) {
             Log.e(LOG_TAG, "Fail to parse data", e);
             call.reject(e.getMessage());
@@ -217,7 +235,7 @@ public class CapacitorCalendar extends Plugin {
         }
 
         JSONArray result = new JSONArray();
-        Map<String, Event> eventMap = fetchEventsAsMap(instances, "1");
+        Map<String, Event> eventMap = fetchEventsAsMap(instances, Integer.toString(calendarId));
 
         for (Event instance : instances) {
             Event event = eventMap.get(instance.eventId);
@@ -509,6 +527,7 @@ public class CapacitorCalendar extends Plugin {
     protected Map<String, Event> fetchEventsAsMap(Event[] instances, String calendarId) {
         // Only selecting from active calendars, no active calendars = no events.
         List<String> activeCalendarIds = Arrays.asList(getActiveCalendarIds());
+
         if (activeCalendarIds.isEmpty()) {
             return null;
         }
