@@ -63,6 +63,7 @@ public class CapacitorCalendar: CAPPlugin {
 
                 do {
                     try self.store.save(event, span: .thisEvent)
+                    call.success()
                 } catch let error as NSError {
                     let msg = "Failed to save event with error: \(error)"
                     print(msg)
@@ -142,6 +143,7 @@ public class CapacitorCalendar: CAPPlugin {
 
                 do {
                     try self.store.save(event, span: .thisEvent)
+                    call.success()
                 } catch let error as NSError {
                     let msg = "Failed to save event with error: \(error)"
                     print(msg)
@@ -255,6 +257,7 @@ public class CapacitorCalendar: CAPPlugin {
                 
                 do {
                     try self.store.remove(event, span: .thisEvent);
+                    call.success()
                 } catch let error as NSError {
                     let msg = "Failed to remove event with error: \(error)"
                     print(msg)
