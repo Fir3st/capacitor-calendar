@@ -52,6 +52,7 @@ public class CapacitorCalendar extends Plugin {
         IS_PRIMARY,
         CALENDARS_NAME,
         CALENDARS_VISIBLE,
+        CALENDARS_PRIMARY,
         CALENDARS_DISPLAY_NAME,
         EVENTS_ID,
         EVENTS_CALENDAR_ID,
@@ -441,6 +442,7 @@ public class CapacitorCalendar extends Plugin {
         keys.put(KeyIndex.CALENDARS_NAME, Calendars.NAME);
         keys.put(KeyIndex.CALENDARS_DISPLAY_NAME, Calendars.CALENDAR_DISPLAY_NAME);
         keys.put(KeyIndex.CALENDARS_VISIBLE, Calendars.VISIBLE);
+        keys.put(KeyIndex.CALENDARS_PRIMARY, Calendars.IS_PRIMARY);
         keys.put(KeyIndex.EVENTS_ID, Events._ID);
         keys.put(KeyIndex.EVENTS_CALENDAR_ID, Events.CALENDAR_ID);
         keys.put(KeyIndex.EVENTS_DESCRIPTION, Events.DESCRIPTION);
@@ -631,7 +633,8 @@ public class CapacitorCalendar extends Plugin {
 
     protected String[] getActiveCalendarIds() {
         Cursor cursor = queryCalendars(new String[]{
-                        this.getKey(KeyIndex.CALENDARS_ID)
+                        this.getKey(KeyIndex.CALENDARS_ID),
+                        this.getKey(KeyIndex.CALENDARS_PRIMARY)
                 },
                 this.getKey(KeyIndex.CALENDARS_VISIBLE) + "=1", null, null);
         String[] calendarIds = null;
@@ -640,8 +643,11 @@ public class CapacitorCalendar extends Plugin {
             int i = 0;
             do {
                 int col = cursor.getColumnIndex(this.getKey(KeyIndex.CALENDARS_ID));
-                calendarIds[i] = cursor.getString(col);
-                i += 1;
+                int primaryCol = cursor.getColumnIndex(this.getKey(KeyIndex.CALENDARS_PRIMARY));
+                if (primaryCol != -1 && cursor.getInt(primaryCol) == 1) {
+                    calendarIds[i] = cursor.getString(col);
+                    i += 1;
+                }
             } while (cursor.moveToNext());
             cursor.close();
         }

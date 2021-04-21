@@ -1,6 +1,6 @@
 {
   "name": "capacitor-calendar",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Simple native calendar handling for Capacitor",
   "main": "dist/esm/index.js",
   "types": "dist/esm/index.d.ts",
@@ -10,7 +10,7 @@
     "watch": "tsc --watch",
     "prepublishOnly": "npm run build"
   },
-  "author": "Vladimír Fojtík <fojtik.v@gmail.com>",
+  "author": "Vladimír Fojtík <fojtik.v@gmail.com>, Břetislav Štěpán <info@bretislavstepan.cz>",
   "license": "MIT",
   "dependencies": {
     "@capacitor/core": "latest"
