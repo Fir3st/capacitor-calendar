@@ -33,6 +33,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
+import com.google.gson.Gson;
+
 @NativePlugin(
     permissions = {
         Manifest.permission.READ_CALENDAR,
@@ -629,6 +631,49 @@ public class CapacitorCalendar extends Plugin {
             cursor.close();
         }
         return eventsMap;
+    }
+
+    @PluginMethod()
+    public void getAvailableCalendars(PluginCall call) {
+        if (!hasRequiredPermissions()) {
+            saveCall(call);
+            pluginRequestAllPermissions();
+        } else {
+            List<String[]> availableCalendars = getAvailableCalendarsList();
+            JSObject ret = new JSObject();
+            ret.put("availableCalendars", new Gson().toJson(availableCalendars));
+            call.success(ret);
+        }
+    }
+
+    protected List<String[]> getAvailableCalendarsList() {
+        Cursor cursor = queryCalendars(new String[]{
+                        this.getKey(KeyIndex.CALENDARS_ID),
+                        this.getKey(KeyIndex.CALENDARS_PRIMARY),
+                        this.getKey(KeyIndex.CALENDARS_NAME),
+                        this.getKey(KeyIndex.CALENDARS_DISPLAY_NAME)
+                },
+                this.getKey(KeyIndex.CALENDARS_VISIBLE) + "=1", null, null);
+
+        List<String[]> availableCalendars = new ArrayList<>();
+        if (cursor.moveToFirst()) {
+            do {
+                int col = cursor.getColumnIndex(this.getKey(KeyIndex.CALENDARS_ID));
+                int primaryCol = cursor.getColumnIndex(this.getKey(KeyIndex.CALENDARS_PRIMARY));
+                int nameCol = cursor.getColumnIndex(this.getKey(KeyIndex.CALENDARS_NAME));
+                int displayNameCol = cursor.getColumnIndex(this.getKey(KeyIndex.CALENDARS_DISPLAY_NAME));
+
+                if (primaryCol != -1 && cursor.getInt(primaryCol) == 1) {
+                    String[] values = new String[3];
+                    values[0] = cursor.getString(col);
+                    values[1] = cursor.getString(nameCol);
+                    values[2] = cursor.getString(displayNameCol);
+                    availableCalendars.add(values);
+                }
+            } while (cursor.moveToNext());
+            cursor.close();
+        }
+        return availableCalendars;
     }
 
     protected String[] getActiveCalendarIds() {

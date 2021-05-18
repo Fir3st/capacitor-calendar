@@ -38,6 +38,11 @@ export class CapacitorCalendarWeb extends WebPlugin implements CapacitorCalendar
     console.log(args);
     throw new Error('Method is not implemented for web');
   }
+
+  async getAvailableCalendars(...args: any): Promise<any> {
+    console.log(args);
+    throw new Error('Method is not implemented for web');
+  }
 }
 
 const CapacitorCalendar = new CapacitorCalendarWeb();
