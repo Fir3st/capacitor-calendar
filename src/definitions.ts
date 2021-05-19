@@ -11,6 +11,7 @@ export interface CalendarEventOptions {
   notes?: string;
   startDate?: number;
   endDate?: number;
+  calendarId?: string;
 }
 
 export interface DeleteEventOptions {
