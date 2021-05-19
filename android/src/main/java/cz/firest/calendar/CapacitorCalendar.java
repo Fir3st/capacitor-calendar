@@ -214,7 +214,6 @@ public class CapacitorCalendar extends Plugin {
         String notes = null;
         Long startFrom = 0l;
         Long startTo = 0l;
-        int calendarId = 1;
 
         try {
             eventId = data.getString("id", null);
@@ -224,7 +223,6 @@ public class CapacitorCalendar extends Plugin {
 
             startFrom = data.has("startDate") ? data.getLong("startDate") : now - DateUtils.DAY_IN_MILLIS * 1000;
             startTo = data.has("endDate") ? data.getLong("endDate") : now + DateUtils.DAY_IN_MILLIS * 1000;
-            calendarId = getDefaultCalendarId();
         } catch (Exception e) {
             Log.e(LOG_TAG, "Fail to parse data", e);
             call.reject(e.getMessage());
@@ -239,7 +237,7 @@ public class CapacitorCalendar extends Plugin {
         }
 
         JSONArray result = new JSONArray();
-        Map<String, Event> eventMap = fetchEventsAsMap(instances, Integer.toString(calendarId));
+        Map<String, Event> eventMap = fetchEventsAsMap(instances, null);
 
         for (Event instance : instances) {
             Event event = eventMap.get(instance.eventId);
