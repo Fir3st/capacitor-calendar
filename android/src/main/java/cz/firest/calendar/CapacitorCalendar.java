@@ -639,14 +639,14 @@ public class CapacitorCalendar extends Plugin {
             saveCall(call);
             pluginRequestAllPermissions();
         } else {
-            List<String[]> availableCalendars = getAvailableCalendarsList();
+            List<Calendar> availableCalendars = getAvailableCalendarsList();
             JSObject ret = new JSObject();
             ret.put("availableCalendars", new Gson().toJson(availableCalendars));
             call.success(ret);
         }
     }
 
-    protected List<String[]> getAvailableCalendarsList() {
+    protected List<Calendar> getAvailableCalendarsList() {
         Cursor cursor = queryCalendars(new String[]{
                         this.getKey(KeyIndex.CALENDARS_ID),
                         this.getKey(KeyIndex.CALENDARS_PRIMARY),
@@ -655,7 +655,7 @@ public class CapacitorCalendar extends Plugin {
                 },
                 this.getKey(KeyIndex.CALENDARS_VISIBLE) + "=1", null, null);
 
-        List<String[]> availableCalendars = new ArrayList<>();
+        List<Calendar> availableCalendars = new ArrayList<>();
         if (cursor.moveToFirst()) {
             do {
                 int col = cursor.getColumnIndex(this.getKey(KeyIndex.CALENDARS_ID));
@@ -664,11 +664,8 @@ public class CapacitorCalendar extends Plugin {
                 int displayNameCol = cursor.getColumnIndex(this.getKey(KeyIndex.CALENDARS_DISPLAY_NAME));
 
                 if (primaryCol != -1 && cursor.getInt(primaryCol) == 1) {
-                    String[] values = new String[3];
-                    values[0] = cursor.getString(col);
-                    values[1] = cursor.getString(nameCol);
-                    values[2] = cursor.getString(displayNameCol);
-                    availableCalendars.add(values);
+                    Calendar data = new Calendar(cursor.getString(col), cursor.getString(nameCol), cursor.getString(displayNameCol));
+                    availableCalendars.add(data);
                 }
             } while (cursor.moveToNext());
             cursor.close();
