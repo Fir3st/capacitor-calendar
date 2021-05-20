@@ -33,6 +33,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
+import com.google.gson.Gson;
+
 @NativePlugin(
     permissions = {
         Manifest.permission.READ_CALENDAR,
@@ -147,7 +149,11 @@ public class CapacitorCalendar extends Plugin {
                 values.put(Events.DTEND, endTime);
             }
 
-            int calendarId = getDefaultCalendarId();
+            String selectedCalendarId = data.has("calendarId") ? data.getString("calendarId").replaceAll("\"","") : "";
+            List<String> activeCalendars = Arrays.asList(getActiveCalendarIds());
+            int calendarId = data.has("calendarId") && activeCalendars.contains(selectedCalendarId)
+                    ? Integer.parseInt(selectedCalendarId)
+                    : getDefaultCalendarId();
 
             values.put(Events.TITLE, call.getString("title", ""));
             values.put(Events.DESCRIPTION, call.getString("notes", ""));
@@ -211,7 +217,6 @@ public class CapacitorCalendar extends Plugin {
         String notes = null;
         Long startFrom = 0l;
         Long startTo = 0l;
-        int calendarId = 1;
 
         try {
             eventId = data.getString("id", null);
@@ -221,7 +226,6 @@ public class CapacitorCalendar extends Plugin {
 
             startFrom = data.has("startDate") ? data.getLong("startDate") : now - DateUtils.DAY_IN_MILLIS * 1000;
             startTo = data.has("endDate") ? data.getLong("endDate") : now + DateUtils.DAY_IN_MILLIS * 1000;
-            calendarId = getDefaultCalendarId();
         } catch (Exception e) {
             Log.e(LOG_TAG, "Fail to parse data", e);
             call.reject(e.getMessage());
@@ -236,7 +240,7 @@ public class CapacitorCalendar extends Plugin {
         }
 
         JSONArray result = new JSONArray();
-        Map<String, Event> eventMap = fetchEventsAsMap(instances, Integer.toString(calendarId));
+        Map<String, Event> eventMap = fetchEventsAsMap(instances, null);
 
         for (Event instance : instances) {
             Event event = eventMap.get(instance.eventId);
@@ -629,6 +633,46 @@ public class CapacitorCalendar extends Plugin {
             cursor.close();
         }
         return eventsMap;
+    }
+
+    @PluginMethod()
+    public void getAvailableCalendars(PluginCall call) {
+        if (!hasRequiredPermissions()) {
+            saveCall(call);
+            pluginRequestAllPermissions();
+        } else {
+            List<Calendar> availableCalendars = getAvailableCalendarsList();
+            JSObject ret = new JSObject();
+            ret.put("availableCalendars", new Gson().toJson(availableCalendars));
+            call.success(ret);
+        }
+    }
+
+    protected List<Calendar> getAvailableCalendarsList() {
+        Cursor cursor = queryCalendars(new String[]{
+                        this.getKey(KeyIndex.CALENDARS_ID),
+                        this.getKey(KeyIndex.CALENDARS_PRIMARY),
+                        this.getKey(KeyIndex.CALENDARS_NAME),
+                        this.getKey(KeyIndex.CALENDARS_DISPLAY_NAME)
+                },
+                this.getKey(KeyIndex.CALENDARS_VISIBLE) + "=1", null, null);
+
+        List<Calendar> availableCalendars = new ArrayList<>();
+        if (cursor.moveToFirst()) {
+            do {
+                int col = cursor.getColumnIndex(this.getKey(KeyIndex.CALENDARS_ID));
+                int primaryCol = cursor.getColumnIndex(this.getKey(KeyIndex.CALENDARS_PRIMARY));
+                int nameCol = cursor.getColumnIndex(this.getKey(KeyIndex.CALENDARS_NAME));
+                int displayNameCol = cursor.getColumnIndex(this.getKey(KeyIndex.CALENDARS_DISPLAY_NAME));
+
+                if (primaryCol != -1 && cursor.getInt(primaryCol) == 1) {
+                    Calendar data = new Calendar(cursor.getString(col), cursor.getString(nameCol), cursor.getString(displayNameCol));
+                    availableCalendars.add(data);
+                }
+            } while (cursor.moveToNext());
+            cursor.close();
+        }
+        return availableCalendars;
     }
 
     protected String[] getActiveCalendarIds() {
