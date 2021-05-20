@@ -40,6 +40,13 @@ public class CapacitorCalendar: CAPPlugin {
             return
         }
 
+       
+        var calendar = self.store.defaultCalendarForNewEvents
+        if let identifier = call.getString("calendarId") {
+            print(identifier)
+            calendar = self.store.calendar(withIdentifier: identifier)
+        }
+        
         let eventStartDate = Date(timeIntervalSince1970: startDate / 1000);
         
         store.requestAccess(to: .event) { (accessGranted: Bool, error: Error?) in
@@ -48,7 +55,7 @@ public class CapacitorCalendar: CAPPlugin {
                 event.title = title
                 event.location = location
                 event.notes = notes
-                event.calendar = self.store.defaultCalendarForNewEvents
+                event.calendar = calendar
 
                 event.startDate = eventStartDate
                 let duration = Int(endDate - startDate);
@@ -279,6 +286,27 @@ public class CapacitorCalendar: CAPPlugin {
         }
         UIApplication.shared.open(url, options: [:], completionHandler: nil)
         call.success()
+    }
+    
+    @objc func getAvailableCalendars(_ call: CAPPluginCall) {
+        let defaultCalendar = self.store.defaultCalendarForNewEvents
+        
+        var calendars = self.store.calendars(for: EKEntityType.event)
+            .filter { $0.calendarIdentifier != defaultCalendar?.calendarIdentifier }
+            .filter { $0.allowsContentModifications }
+            .map {[
+                "id": $0.calendarIdentifier,
+                "name": $0.title,
+                "displayName": $0.title,
+            ]}
+        
+        calendars.insert([
+            "id": defaultCalendar!.calendarIdentifier,
+            "name": defaultCalendar!.title,
+            "displayName": defaultCalendar!.title,
+        ], at: 0)
+
+        call.resolve(["availableCalendars": calendars]);
     }
 
 }

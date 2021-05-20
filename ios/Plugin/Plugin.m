@@ -10,4 +10,5 @@ CAP_PLUGIN(CapacitorCalendar, "CapacitorCalendar",
            CAP_PLUGIN_METHOD(deleteEventById, CAPPluginReturnPromise);
            CAP_PLUGIN_METHOD(updateEvent, CAPPluginReturnPromise);
            CAP_PLUGIN_METHOD(openCalendar, CAPPluginReturnPromise);
+           CAP_PLUGIN_METHOD(getAvailableCalendars, CAPPluginReturnPromise);
 )
