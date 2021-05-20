@@ -43,7 +43,6 @@ public class CapacitorCalendar: CAPPlugin {
        
         var calendar = self.store.defaultCalendarForNewEvents
         if let identifier = call.getString("calendarId") {
-            print(identifier)
             calendar = self.store.calendar(withIdentifier: identifier)
         }
         
