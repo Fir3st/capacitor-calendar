@@ -150,7 +150,10 @@ public class CapacitorCalendar extends Plugin {
             }
 
             String selectedCalendarId = data.has("calendarId") ? data.getString("calendarId").replaceAll("\"","") : "";
-            int calendarId = data.has("calendarId") ? Integer.parseInt(selectedCalendarId) : getDefaultCalendarId();
+            List<String> activeCalendars = Arrays.asList(getActiveCalendarIds());
+            int calendarId = data.has("calendarId") && activeCalendars.contains(selectedCalendarId)
+                    ? Integer.parseInt(selectedCalendarId)
+                    : getDefaultCalendarId();
 
             values.put(Events.TITLE, call.getString("title", ""));
             values.put(Events.DESCRIPTION, call.getString("notes", ""));
