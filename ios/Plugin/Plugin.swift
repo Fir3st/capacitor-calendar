@@ -43,7 +43,9 @@ public class CapacitorCalendar: CAPPlugin {
        
         var calendar = self.store.defaultCalendarForNewEvents
         if let identifier = call.getString("calendarId") {
-            calendar = self.store.calendar(withIdentifier: identifier)
+            if let selectedCalendar = self.store.calendar(withIdentifier: identifier) {
+                calendar = selectedCalendar
+            }
         }
         
         let eventStartDate = Date(timeIntervalSince1970: startDate / 1000);
