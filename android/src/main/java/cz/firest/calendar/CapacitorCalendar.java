@@ -658,6 +658,7 @@ public class CapacitorCalendar extends Plugin {
                 this.getKey(KeyIndex.CALENDARS_VISIBLE) + "=1", null, null);
 
         List<Calendar> availableCalendars = new ArrayList<>();
+        boolean defaultSelected = false;
         if (cursor.moveToFirst()) {
             do {
                 int col = cursor.getColumnIndex(this.getKey(KeyIndex.CALENDARS_ID));
@@ -666,7 +667,14 @@ public class CapacitorCalendar extends Plugin {
                 int displayNameCol = cursor.getColumnIndex(this.getKey(KeyIndex.CALENDARS_DISPLAY_NAME));
 
                 if (primaryCol != -1) {
-                    Calendar data = new Calendar(cursor.getString(col), cursor.getString(nameCol), cursor.getString(displayNameCol));
+                    boolean defaultCalendar = false;
+                    if (defaultSelected == false && cursor.getInt(primaryCol) == 1) {
+                      defaultSelected = true;
+                      defaultCalendar = true;
+                    }
+
+                    Calendar data = new Calendar(cursor.getString(col), cursor.getString(nameCol),
+                      cursor.getString(displayNameCol), defaultCalendar);
                     availableCalendars.add(data);
                 }
             } while (cursor.moveToNext());

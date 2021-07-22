@@ -299,12 +299,14 @@ public class CapacitorCalendar: CAPPlugin {
                 "id": $0.calendarIdentifier,
                 "name": $0.title,
                 "displayName": $0.title,
+                "defaultCalendar": false,
             ]}
         
         calendars.insert([
             "id": defaultCalendar!.calendarIdentifier,
             "name": defaultCalendar!.title,
             "displayName": defaultCalendar!.title,
+            "defaultCalendar": true,
         ], at: 0)
 
         call.resolve(["availableCalendars": calendars]);
