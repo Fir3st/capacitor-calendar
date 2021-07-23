@@ -183,12 +183,16 @@ public class CapacitorCalendar extends Plugin {
     }
 
     protected int getDefaultCalendarId() throws Exception {
-        int calendarId;
+        int calendarId = 0;
 
-        String[] calendars = getActiveCalendarIds();
+        List<Calendar> calendars = getAvailableCalendarsList();
 
-        if (calendars != null && calendars.length > 0) {
-            calendarId = Integer.parseInt(calendars[0].trim());
+        if (calendars != null && calendars.size() > 0) {
+            for (Calendar calendar: calendars) {
+              if (calendar.defaultCalendar == true) {
+                calendarId = Integer.parseInt(calendar.id.trim());
+              }
+            }
         } else {
             throw new Exception("No calendars found.");
         }
