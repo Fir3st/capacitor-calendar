@@ -696,7 +696,7 @@ public class CapacitorCalendar extends Plugin {
             do {
                 int col = cursor.getColumnIndex(this.getKey(KeyIndex.CALENDARS_ID));
                 int primaryCol = cursor.getColumnIndex(this.getKey(KeyIndex.CALENDARS_PRIMARY));
-                if (primaryCol != -1 && cursor.getInt(primaryCol) == 1) {
+                if (primaryCol != -1) {
                     calendarIds[i] = cursor.getString(col);
                     i += 1;
                 }
