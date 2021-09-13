@@ -41,17 +41,19 @@ public class CapacitorCalendar: CAPPlugin {
         }
 
        
-        var calendar = self.store.defaultCalendarForNewEvents
-        if let identifier = call.getString("calendarId") {
-            if let selectedCalendar = self.store.calendar(withIdentifier: identifier) {
-                calendar = selectedCalendar
-            }
-        }
+
         
         let eventStartDate = Date(timeIntervalSince1970: startDate / 1000);
         
         store.requestAccess(to: .event) { (accessGranted: Bool, error: Error?) in
             if error == nil {
+                var calendar = self.store.defaultCalendarForNewEvents
+                if let identifier = call.getString("calendarId") {
+                    if let selectedCalendar = self.store.calendar(withIdentifier: identifier) {
+                        calendar = selectedCalendar
+                    }
+                }
+
                 let event = EKEvent.init(eventStore: self.store)
                 event.title = title
                 event.location = location
