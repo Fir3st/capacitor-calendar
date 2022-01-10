@@ -17,6 +17,10 @@ import android.util.Log;
 
 import com.getcapacitor.JSObject;
 import com.getcapacitor.NativePlugin;
+import com.getcapacitor.annotation.CapacitorPlugin;
+import com.getcapacitor.annotation.Permission;
+import com.getcapacitor.annotation.PermissionCallback;
+import com.getcapacitor.PermissionState;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
@@ -35,13 +39,10 @@ import java.util.TimeZone;
 
 import com.google.gson.Gson;
 
-@NativePlugin(
+@CapacitorPlugin(
+    name = "CapacitorCalendar",
     permissions = {
-        Manifest.permission.READ_CALENDAR,
-        Manifest.permission.WRITE_CALENDAR,
-    },
-    requestCodes = {
-        CapacitorCalendar.REQUEST_CALENDAR_PERMISSION
+        @Permission(strings = { Manifest.permission.READ_CALENDAR, Manifest.permission.WRITE_CALENDAR }, alias = "calendar")
     }
 )
 public class CapacitorCalendar extends Plugin {
@@ -76,29 +77,21 @@ public class CapacitorCalendar extends Plugin {
         ATTENDEES_STATUS
     }
 
-    @Override
-    protected void handleRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        super.handleRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == REQUEST_CALENDAR_PERMISSION) {
-            boolean permissionsGranted = true;
-            for (int grantResult: grantResults) {
-                if (grantResult != 0) {
-                    permissionsGranted = false;
-                }
-            }
+    protected void requestPermissionsCalendar(PluginCall call) {
+        requestPermissionForAlias("calendar", call, "calendarPermsCallback");
+    }
 
-            PluginCall savedCall = getSavedCall();
-            if (!permissionsGranted) {
-                savedCall.reject("permission failed");
-            }
+    @PermissionCallback
+    private void calendarPermsCallback(PluginCall call) {
+        if (!(getPermissionState("calendar") == PermissionState.GRANTED)) {
+            call.reject("Permission is required");
         }
     }
 
     @PluginMethod()
     public void openCalendar(PluginCall call) {
         if (!hasRequiredPermissions()) {
-            saveCall(call);
-            pluginRequestAllPermissions();
+            requestPermissionsCalendar(call);
         } else {
             try {
                 JSObject data = call.getData();
@@ -121,8 +114,7 @@ public class CapacitorCalendar extends Plugin {
     @PluginMethod()
     public void createEvent(PluginCall call) {
         if (!hasRequiredPermissions()) {
-            saveCall(call);
-            pluginRequestAllPermissions();
+            requestPermissionsCalendar(call);
         } else {
             createCalendarEvent(call);
         }
@@ -203,8 +195,7 @@ public class CapacitorCalendar extends Plugin {
     @PluginMethod()
     public void findEvent(PluginCall call) {
         if (!hasRequiredPermissions()) {
-            saveCall(call);
-            pluginRequestAllPermissions();
+            requestPermissionsCalendar(call);
         } else {
             findCalendarEvents(call);
         }
@@ -278,8 +269,7 @@ public class CapacitorCalendar extends Plugin {
     @PluginMethod()
     public void deleteEvent(PluginCall call) {
         if (!hasRequiredPermissions()) {
-            saveCall(call);
-            pluginRequestAllPermissions();
+            requestPermissionsCalendar(call);
         } else {
             deleteCalendarEvents(call);
         }
@@ -327,8 +317,7 @@ public class CapacitorCalendar extends Plugin {
     @PluginMethod()
     public void deleteEventById(PluginCall call) {
         if (!hasRequiredPermissions()) {
-            saveCall(call);
-            pluginRequestAllPermissions();
+            requestPermissionsCalendar(call);
         } else {
             deleteCalendarEventById(call);
         }
@@ -366,8 +355,7 @@ public class CapacitorCalendar extends Plugin {
     @PluginMethod()
     public void updateEvent(PluginCall call) {
         if (!hasRequiredPermissions()) {
-            saveCall(call);
-            pluginRequestAllPermissions();
+            requestPermissionsCalendar(call);
         } else {
             updateCalendarEvent(call);
         }
@@ -642,8 +630,7 @@ public class CapacitorCalendar extends Plugin {
     @PluginMethod()
     public void getAvailableCalendars(PluginCall call) {
         if (!hasRequiredPermissions()) {
-            saveCall(call);
-            pluginRequestAllPermissions();
+            requestPermissionsCalendar(call);
         } else {
             List<Calendar> availableCalendars = getAvailableCalendarsList();
             JSObject ret = new JSObject();

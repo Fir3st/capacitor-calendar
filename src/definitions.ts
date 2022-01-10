@@ -1,9 +1,3 @@
-declare module "@capacitor/core" {
-  interface PluginRegistry {
-    CapacitorCalendar: CapacitorCalendarPlugin;
-  }
-}
-
 export interface CalendarEventOptions {
   id?: string;
   title?: string;
@@ -19,6 +13,7 @@ export interface DeleteEventOptions {
 }
 
 export interface CapacitorCalendarPlugin {
+  pluginName: string
   openCalendar(options?: { date: number }): Promise<any>
   createEvent(options: CalendarEventOptions): Promise<any>
   findEvent(options: CalendarEventOptions): Promise<any>
