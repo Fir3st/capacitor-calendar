@@ -46,7 +46,6 @@ import com.google.gson.Gson;
     }
 )
 public class CapacitorCalendar extends Plugin {
-    static final int REQUEST_CALENDAR_PERMISSION = 42;
     static final Integer RESULT_CODE_OPENCAL = 1;
     public static final String LOG_TAG = "Calendar";
 
