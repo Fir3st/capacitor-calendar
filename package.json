@@ -1,6 +1,6 @@
 {
   "name": "capacitor-calendar",
-  "version": "0.0.14",
+  "version": "1.0.1",
   "description": "Simple native calendar handling for Capacitor",
   "main": "dist/esm/index.js",
   "types": "dist/esm/index.d.ts",
@@ -13,13 +13,13 @@
   "author": "Vladimír Fojtík <vladimir@fojtik.dev>, Břetislav Štěpán <info@bretislavstepan.cz>",
   "license": "MIT",
   "dependencies": {
-    "@capacitor/core": "latest"
+    "@capacitor/core": "^3.3.4"
   },
   "devDependencies": {
+    "@capacitor/android": "^3.3.4",
+    "@capacitor/ios": "^3.3.4",
     "rimraf": "^3.0.0",
-    "typescript": "^3.2.4",
-    "@capacitor/ios": "latest",
-    "@capacitor/android": "latest"
+    "typescript": "^4.5.4"
   },
   "files": [
     "dist/",

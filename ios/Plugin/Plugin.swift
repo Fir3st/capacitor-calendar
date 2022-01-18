@@ -73,7 +73,7 @@ public class CapacitorCalendar: CAPPlugin {
 
                 do {
                     try self.store.save(event, span: .thisEvent)
-                    call.success()
+                    call.resolve()
                 } catch let error as NSError {
                     let msg = "Failed to save event with error: \(error)"
                     print(msg)
@@ -153,7 +153,7 @@ public class CapacitorCalendar: CAPPlugin {
 
                 do {
                     try self.store.save(event, span: .thisEvent)
-                    call.success()
+                    call.resolve()
                 } catch let error as NSError {
                     let msg = "Failed to save event with error: \(error)"
                     print(msg)
@@ -221,7 +221,7 @@ public class CapacitorCalendar: CAPPlugin {
                         ]
                     }
                     
-                    call.success(["events": events])
+                    call.resolve(["events": events])
                 } else {
                     let events = datedEvents.map{
                         (event: Any) -> [String: String?] in
@@ -234,7 +234,7 @@ public class CapacitorCalendar: CAPPlugin {
                         ]
                     }
                                           
-                    call.success(["events": events])
+                    call.resolve(["events": events])
                 }
 
             } else {
@@ -267,7 +267,7 @@ public class CapacitorCalendar: CAPPlugin {
                 
                 do {
                     try self.store.remove(event, span: .thisEvent);
-                    call.success()
+                    call.resolve()
                 } catch let error as NSError {
                     let msg = "Failed to remove event with error: \(error)"
                     print(msg)
@@ -288,7 +288,7 @@ public class CapacitorCalendar: CAPPlugin {
             return
         }
         UIApplication.shared.open(url, options: [:], completionHandler: nil)
-        call.success()
+        call.resolve()
     }
     
     @objc func getAvailableCalendars(_ call: CAPPluginCall) {
