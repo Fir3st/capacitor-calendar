@@ -23,7 +23,7 @@ public class CapacitorCalendar: CAPPlugin {
         }
         
         let location = call.getString("location") ?? ""
-        let isAllDay = call.getBool("allDay") ?? false
+        let isAllDay = call.getBool("allDay") ?? true
         let notes = call.getString("notes") ?? ""
 
         guard let startDate = call.getDouble("startDate"), startDate > 0 else {
@@ -61,7 +61,11 @@ public class CapacitorCalendar: CAPPlugin {
                 event.calendar = calendar
                 event.startDate = eventStartDate
 
-                if (isAllDay) {
+                let duration = Int(endDate - startDate);
+                let moduloDay = duration % (60 * 60 * 24);
+                print ("Duration: \(duration), moduloDay \(moduloDay)")
+
+                if (isAllDay && moduloDay == 0) {
                     event.isAllDay = true;
                     event.endDate = Date(timeIntervalSince1970: (endDate / 1000) - 1)
                 } else {
@@ -102,7 +106,7 @@ public class CapacitorCalendar: CAPPlugin {
          }
          
          let location = call.getString("location") ?? ""
-         let isAllDay = call.getBool("allDay") ?? false
+         let isAllDay = call.getBool("allDay") ?? true
          let notes = call.getString("notes") ?? ""
 
          guard let startDate = call.getDouble("startDate"), startDate > 0 else {
@@ -136,8 +140,11 @@ public class CapacitorCalendar: CAPPlugin {
                 event.notes = notes
 
                 event.startDate = eventStartDate
+                let duration = Int(endDate - startDate);
+                let moduloDay = duration % (60 * 60 * 24);
+                print ("Duration: \(duration), moduloDay \(moduloDay)")
 
-                if (isAllDay) {
+                if (isAllDay && moduloDay == 0) {
                     event.isAllDay = true;
                     event.endDate = Date(timeIntervalSince1970: (endDate / 1000) - 1)
                 } else {
