@@ -127,7 +127,8 @@ public class CapacitorCalendar extends Plugin {
         try {
             Long startTime = data.has("startDate") ? data.getLong("startDate") : new Date().getTime();
             Long endTime = data.has("endDate") ? data.getLong("endDate") : new Date().getTime();
-            final boolean allDayEvent = data.getBoolean("allDay", false);
+            final boolean allDayEventConfig = data.getBoolean("allDay", true);
+            final boolean allDayEvent = allDayEventConfig && isAllDayEvent(new Date(startTime), new Date(endTime));
             final boolean allDayEvent = isAllDayEvent(new Date(startTime), new Date(endTime));
             if (allDayEvent) {
                 values.put(Events.EVENT_TIMEZONE, "UTC");
@@ -395,7 +396,7 @@ public class CapacitorCalendar extends Plugin {
             Long startTime = data.has("startDate") ? data.getLong("startDate") : evDtStart;
             Long endTime = data.has("endDate") ? data.getLong("endDate") : evDtEnd;
 
-            final boolean allDayEventConfig = data.has("allDay") ? data.getBoolean("allDay") : true;
+            final boolean allDayEventConfig = data.getBoolean("allDay", true);
             final boolean allDayEvent = allDayEventConfig && isAllDayEvent(new Date(startTime), new Date(endTime));
             if (allDayEvent) {
                 values.put(Events.EVENT_TIMEZONE, "UTC");
