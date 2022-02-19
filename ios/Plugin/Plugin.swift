@@ -23,7 +23,6 @@ public class CapacitorCalendar: CAPPlugin {
         }
         
         let location = call.getString("location") ?? ""
-
         let notes = call.getString("notes") ?? ""
 
         guard let startDate = call.getDouble("startDate"), startDate > 0 else {
@@ -59,17 +58,23 @@ public class CapacitorCalendar: CAPPlugin {
                 event.location = location
                 event.notes = notes
                 event.calendar = calendar
-
                 event.startDate = eventStartDate
-                let duration = Int(endDate - startDate);
-                let moduloDay = duration % (60 * 60 * 24);
 
-                if (moduloDay == 0) {
-                    event.isAllDay = true;
-                    event.endDate = Date(timeIntervalSince1970: (endDate / 1000) - 1)
-                } else {
+                print ("Duration: \(duration), moduloDay \(moduloDay)")
+                if let allDay = call.getBool("allDay") {
                     event.endDate = Date(timeIntervalSince1970: endDate / 1000)
+                    event.isAllDay = allDay
+                } else {
+                    let duration = Int(endDate - startDate);
+                    let moduloDay = duration % (60 * 60 * 24);
+                    if (moduloDay == 0) {
+                        event.isAllDay = true;
+                        event.endDate = Date(timeIntervalSince1970: (endDate / 1000) - 1)
+                    } else {
+                        event.endDate = Date(timeIntervalSince1970: endDate / 1000)
+                    }
                 }
+
 
                 do {
                     try self.store.save(event, span: .thisEvent)
@@ -105,7 +110,6 @@ public class CapacitorCalendar: CAPPlugin {
          }
          
          let location = call.getString("location") ?? ""
-
          let notes = call.getString("notes") ?? ""
 
          guard let startDate = call.getDouble("startDate"), startDate > 0 else {
@@ -139,16 +143,18 @@ public class CapacitorCalendar: CAPPlugin {
                 event.notes = notes
 
                 event.startDate = eventStartDate
-                let duration = Int(endDate - startDate);
-                let moduloDay = duration % (60 * 60 * 24);
-
-                print ("Duration: \(duration), moduloDay \(moduloDay)")
-                
-                if (moduloDay == 0) {
-                    event.isAllDay = true;
-                    event.endDate = Date(timeIntervalSince1970: (endDate / 1000) - 1)
-                } else {
+                if let allDay = call.getBool("allDay") {
                     event.endDate = Date(timeIntervalSince1970: endDate / 1000)
+                    event.isAllDay = allDay
+                } else {
+                    let duration = Int(endDate - startDate);
+                    let moduloDay = duration % (60 * 60 * 24);
+                    if (moduloDay == 0) {
+                        event.isAllDay = true;
+                        event.endDate = Date(timeIntervalSince1970: (endDate / 1000) - 1)
+                    } else {
+                        event.endDate = Date(timeIntervalSince1970: endDate / 1000)
+                    }
                 }
 
                 do {

@@ -6,6 +6,7 @@ export interface CalendarEventOptions {
   startDate?: number;
   endDate?: number;
   calendarId?: string;
+  allDay?: boolean;
 }
 
 export interface DeleteEventOptions {

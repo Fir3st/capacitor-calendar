@@ -127,17 +127,25 @@ public class CapacitorCalendar extends Plugin {
         try {
             Long startTime = data.has("startDate") ? data.getLong("startDate") : new Date().getTime();
             Long endTime = data.has("endDate") ? data.getLong("endDate") : new Date().getTime();
-
-            final boolean allDayEvent = isAllDayEvent(new Date(startTime), new Date(endTime));
-            if (allDayEvent) {
-                values.put(Events.EVENT_TIMEZONE, "UTC");
-                values.put(Events.ALL_DAY, true);
-                values.put(Events.DTSTART, startTime + TimeZone.getDefault().getOffset(startTime));
-                values.put(Events.DTEND, endTime + TimeZone.getDefault().getOffset(endTime));
-            } else {
+            final boolean allDayEventConfig = data.getBoolean("allDay", null);
+            if (allDayEventConfig !== null) {
                 values.put(Events.EVENT_TIMEZONE, TimeZone.getDefault().getID());
+                values.put(Events.ALL_DAY, allDayEventConfig);
                 values.put(Events.DTSTART, startTime);
                 values.put(Events.DTEND, endTime);
+            } else {
+                final boolean allDayEvent = isAllDayEvent(new Date(startTime), new Date(endTime));
+                if (allDayEvent) {
+                    values.put(Events.EVENT_TIMEZONE, "UTC");
+                    values.put(Events.ALL_DAY, true);
+                    values.put(Events.DTSTART, startTime + TimeZone.getDefault().getOffset(startTime));
+                    values.put(Events.DTEND, endTime + TimeZone.getDefault().getOffset(endTime));
+                } else {
+                    values.put(Events.EVENT_TIMEZONE, TimeZone.getDefault().getID());
+                    values.put(Events.ALL_DAY, false);
+                    values.put(Events.DTSTART, startTime);
+                    values.put(Events.DTEND, endTime);
+                }
             }
 
             String selectedCalendarId = data.has("calendarId") ? data.getString("calendarId").replaceAll("\"","") : "";
@@ -395,17 +403,25 @@ public class CapacitorCalendar extends Plugin {
             Long startTime = data.has("startDate") ? data.getLong("startDate") : evDtStart;
             Long endTime = data.has("endDate") ? data.getLong("endDate") : evDtEnd;
 
-            final boolean allDayEvent = isAllDayEvent(new Date(startTime), new Date(endTime));
-            if (allDayEvent) {
-                values.put(Events.EVENT_TIMEZONE, "UTC");
-                values.put(Events.ALL_DAY, true);
-                values.put(Events.DTSTART, startTime + TimeZone.getDefault().getOffset(startTime));
-                values.put(Events.DTEND, endTime + TimeZone.getDefault().getOffset(endTime));
-            } else {
+            final boolean allDayEventConfig = data.getBoolean("allDay", null);
+            if (allDayEventConfig !== null) {
                 values.put(Events.EVENT_TIMEZONE, TimeZone.getDefault().getID());
-                values.put(Events.ALL_DAY, false);
+                values.put(Events.ALL_DAY, allDayEventConfig);
                 values.put(Events.DTSTART, startTime);
                 values.put(Events.DTEND, endTime);
+            } else {
+                final boolean allDayEvent = isAllDayEvent(new Date(startTime), new Date(endTime));
+                if (allDayEvent) {
+                    values.put(Events.EVENT_TIMEZONE, "UTC");
+                    values.put(Events.ALL_DAY, true);
+                    values.put(Events.DTSTART, startTime + TimeZone.getDefault().getOffset(startTime));
+                    values.put(Events.DTEND, endTime + TimeZone.getDefault().getOffset(endTime));
+                } else {
+                    values.put(Events.EVENT_TIMEZONE, TimeZone.getDefault().getID());
+                    values.put(Events.ALL_DAY, false);
+                    values.put(Events.DTSTART, startTime);
+                    values.put(Events.DTEND, endTime);
+                }
             }
 
             values.put(Events.TITLE, data.has("title") ? data.getString("title") : title);
