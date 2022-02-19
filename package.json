@@ -1,6 +1,6 @@
 {
   "name": "capacitor-calendar",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Simple native calendar handling for Capacitor",
   "main": "dist/esm/index.js",
   "types": "dist/esm/index.d.ts",
