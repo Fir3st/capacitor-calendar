@@ -60,7 +60,6 @@ public class CapacitorCalendar: CAPPlugin {
                 event.calendar = calendar
                 event.startDate = eventStartDate
 
-                print ("Duration: \(duration), moduloDay \(moduloDay)")
                 if let allDay = call.getBool("allDay") {
                     event.endDate = Date(timeIntervalSince1970: endDate / 1000)
                     event.isAllDay = allDay
