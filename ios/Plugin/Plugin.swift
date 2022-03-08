@@ -297,26 +297,34 @@ public class CapacitorCalendar: CAPPlugin {
     }
     
     @objc func getAvailableCalendars(_ call: CAPPluginCall) {
-        let defaultCalendar = self.store.defaultCalendarForNewEvents
-        
-        var calendars = self.store.calendars(for: EKEntityType.event)
-            .filter { $0.calendarIdentifier != defaultCalendar?.calendarIdentifier }
-            .filter { $0.allowsContentModifications }
-            .map {[
-                "id": $0.calendarIdentifier,
-                "name": $0.title,
-                "displayName": $0.title,
-                "defaultCalendar": false,
-            ]}
-        
-        calendars.insert([
-            "id": defaultCalendar!.calendarIdentifier,
-            "name": defaultCalendar!.title,
-            "displayName": defaultCalendar!.title,
-            "defaultCalendar": true,
-        ], at: 0)
+        store.requestAccess(to: .event) { (accessGranted: Bool, error: Error?) in
+            if error == nil {
+                let defaultCalendar = self.store.defaultCalendarForNewEvents
+                
+                var calendars = self.store.calendars(for: EKEntityType.event)
+                    .filter { $0.calendarIdentifier != defaultCalendar?.calendarIdentifier }
+                    .filter { $0.allowsContentModifications }
+                    .map {[
+                        "id": $0.calendarIdentifier,
+                        "name": $0.title,
+                        "displayName": $0.title,
+                        "defaultCalendar": false,
+                    ]}
+                
+                calendars.insert([
+                    "id": defaultCalendar!.calendarIdentifier,
+                    "name": defaultCalendar!.title,
+                    "displayName": defaultCalendar!.title,
+                    "defaultCalendar": true,
+                ], at: 0)
 
-        call.resolve(["availableCalendars": calendars]);
+                call.resolve(["availableCalendars": calendars]);
+            } else {
+                let msg = "EK access denied"
+                print(msg)
+                call.reject(msg)
+            }
+        }
     }
 
 }
