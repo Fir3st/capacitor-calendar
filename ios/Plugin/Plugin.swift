@@ -45,7 +45,7 @@ public class CapacitorCalendar: CAPPlugin {
         let eventStartDate = Date(timeIntervalSince1970: startDate / 1000);
         
         store.requestAccess(to: .event) { (accessGranted: Bool, error: Error?) in
-            if error == nil {
+            if accessGranted && error == nil {
                 var calendar = self.store.defaultCalendarForNewEvents
                 if let identifier = call.getString("calendarId") {
                     if let selectedCalendar = self.store.calendar(withIdentifier: identifier) {
@@ -128,7 +128,7 @@ public class CapacitorCalendar: CAPPlugin {
         let eventStartDate = Date(timeIntervalSince1970: startDate / 1000);
          
         store.requestAccess(to: .event) { (accessGranted: Bool, error: Error?) in
-            if error == nil {
+            if accessGranted && error == nil {
                 
                 guard let event = self.store.event(withIdentifier: id) else {
                     let msg = "Event has not been found"
@@ -186,7 +186,7 @@ public class CapacitorCalendar: CAPPlugin {
         let eventEndDate = Date(timeIntervalSince1970: endDate / 1000)
         
         store.requestAccess(to: .event) { (accessGranted: Bool, error: Error?) in
-            if error == nil {
+            if accessGranted && error == nil {
                 let calendars = self.store.calendars(for: EKEntityType.event)
                 let predicate = self.store.predicateForEvents(withStart: eventStartDate, end: eventEndDate, calendars: calendars)
                 
@@ -262,7 +262,7 @@ public class CapacitorCalendar: CAPPlugin {
         }
         
         store.requestAccess(to: .event) { (accessGranted: Bool, error: Error?) in
-            if error == nil {
+            if accessGranted && error == nil {
                 guard let event = self.store.event(withIdentifier: id) else {
                     let msg = "Event \(id) has not been found"
                     print(msg)
@@ -297,26 +297,34 @@ public class CapacitorCalendar: CAPPlugin {
     }
     
     @objc func getAvailableCalendars(_ call: CAPPluginCall) {
-        let defaultCalendar = self.store.defaultCalendarForNewEvents
-        
-        var calendars = self.store.calendars(for: EKEntityType.event)
-            .filter { $0.calendarIdentifier != defaultCalendar?.calendarIdentifier }
-            .filter { $0.allowsContentModifications }
-            .map {[
-                "id": $0.calendarIdentifier,
-                "name": $0.title,
-                "displayName": $0.title,
-                "defaultCalendar": false,
-            ]}
-        
-        calendars.insert([
-            "id": defaultCalendar!.calendarIdentifier,
-            "name": defaultCalendar!.title,
-            "displayName": defaultCalendar!.title,
-            "defaultCalendar": true,
-        ], at: 0)
+        store.requestAccess(to: .event) { (accessGranted: Bool, error: Error?) in
+            if accessGranted && error == nil {
+                let defaultCalendar = self.store.defaultCalendarForNewEvents
+                
+                var calendars = self.store.calendars(for: EKEntityType.event)
+                    .filter { $0.calendarIdentifier != defaultCalendar?.calendarIdentifier }
+                    .filter { $0.allowsContentModifications }
+                    .map {[
+                        "id": $0.calendarIdentifier,
+                        "name": $0.title,
+                        "displayName": $0.title,
+                        "defaultCalendar": false,
+                    ]}
+                
+                calendars.insert([
+                    "id": defaultCalendar!.calendarIdentifier,
+                    "name": defaultCalendar!.title,
+                    "displayName": defaultCalendar!.title,
+                    "defaultCalendar": true,
+                ], at: 0)
 
-        call.resolve(["availableCalendars": calendars]);
+                call.resolve(["availableCalendars": calendars]);
+            } else {
+                let msg = "EK access denied"
+                print(msg)
+                call.reject(msg)
+            }
+        }
     }
 
 }
