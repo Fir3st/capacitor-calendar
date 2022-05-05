@@ -65,7 +65,7 @@ public class CapacitorCalendar: CAPPlugin {
                     event.isAllDay = allDay
                 } else {
                     let duration = Int(endDate - startDate);
-                    let moduloDay = duration % (60 * 60 * 24);
+                    let moduloDay = (duration / 1000) % (60 * 60 * 24);
                     if (moduloDay == 0) {
                         event.isAllDay = true;
                         event.endDate = Date(timeIntervalSince1970: (endDate / 1000) - 1)
@@ -147,7 +147,7 @@ public class CapacitorCalendar: CAPPlugin {
                     event.isAllDay = allDay
                 } else {
                     let duration = Int(endDate - startDate);
-                    let moduloDay = duration % (60 * 60 * 24);
+                    let moduloDay = (duration / 1000) % (60 * 60 * 24);
                     if (moduloDay == 0) {
                         event.isAllDay = true;
                         event.endDate = Date(timeIntervalSince1970: (endDate / 1000) - 1)
