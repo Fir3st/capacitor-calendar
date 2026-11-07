@@ -304,11 +304,11 @@ public class CapacitorCalendarPlugin: CAPPlugin, CAPBridgedPlugin {
 
         if #available(iOS 17.0, *) {
             switch status {
-            case .fullAccess, .writeOnly:
+            case .fullAccess:
                 return "granted"
             case .notDetermined:
                 return "prompt"
-            case .restricted, .denied:
+            case .writeOnly, .restricted, .denied:
                 return "denied"
             default:
                 return "denied"
