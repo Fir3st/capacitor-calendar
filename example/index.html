@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Capacitor Calendar Demo</title>
+    <style>
+      body { font-family: system-ui, sans-serif; margin: 2rem; }
+      button { margin: 0.25rem; padding: 0.5rem 0.75rem; }
+      pre { background: #f3f3f3; padding: 1rem; overflow: auto; white-space: pre-wrap; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Capacitor Calendar Demo</h1>
+      <button id="permissions">Check permissions</button>
+      <button id="request">Request permissions</button>
+      <button id="calendars">Get calendars</button>
+      <button id="create">Create event</button>
+      <button id="find">Find event</button>
+      <button id="update">Update event</button>
+      <button id="delete">Delete event</button>
+      <button id="open">Open calendar</button>
+      <pre id="log"></pre>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
