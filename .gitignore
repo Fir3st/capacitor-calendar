@@ -1,6 +1,9 @@
 /node_modules
 /dist
 /build
+/.build
+/.swiftpm
+Package.resolved
 android/build/
 android/.gradle/
 android/.idea/

@@ -1,3 +1,9 @@
+import type { PermissionState } from '@capacitor/core';
+
+export interface PermissionStatus {
+  calendar: PermissionState;
+}
+
 export interface CalendarEventOptions {
   id?: string;
   title?: string;
@@ -14,12 +20,13 @@ export interface DeleteEventOptions {
 }
 
 export interface CapacitorCalendarPlugin {
-  pluginName: string
-  openCalendar(options?: { date: number }): Promise<any>
-  createEvent(options: CalendarEventOptions): Promise<any>
-  findEvent(options: CalendarEventOptions): Promise<any>
-  deleteEvent(options: DeleteEventOptions): Promise<any>
-  deleteEventById(options: { id: string }): Promise<any>
-  updateEvent(options: CalendarEventOptions): Promise<any>
-  getAvailableCalendars(): Promise<any>
+  openCalendar(options?: { date: number }): Promise<any>;
+  createEvent(options: CalendarEventOptions): Promise<any>;
+  findEvent(options: CalendarEventOptions): Promise<any>;
+  deleteEvent(options: DeleteEventOptions): Promise<any>;
+  deleteEventById(options: { id: string }): Promise<any>;
+  updateEvent(options: CalendarEventOptions): Promise<any>;
+  getAvailableCalendars(): Promise<any>;
+  checkPermissions(): Promise<PermissionStatus>;
+  requestPermissions(): Promise<PermissionStatus>;
 }

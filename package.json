@@ -1,36 +1,52 @@
 {
   "name": "capacitor-calendar",
-  "version": "1.0.6",
+  "version": "2.0.0",
   "description": "Simple native calendar handling for Capacitor",
-  "main": "dist/esm/index.js",
+  "main": "dist/plugin.cjs.js",
+  "module": "dist/esm/index.js",
   "types": "dist/esm/index.d.ts",
+  "unpkg": "dist/plugin.js",
+  "files": [
+    "android/src/main/",
+    "android/build.gradle",
+    "android/proguard-rules.pro",
+    "dist/",
+    "ios/Sources",
+    "ios/Tests",
+    "Package.swift",
+    "CapacitorCalendar.podspec"
+  ],
   "scripts": {
-    "build": "npm run clean && tsc",
+    "verify": "npm run verify:web && npm run verify:ios && npm run verify:android",
+    "verify:web": "npm run build",
+    "verify:ios": "xcodebuild -scheme CapacitorCalendar -destination generic/platform=iOS",
+    "verify:android": "cd android && ./gradlew clean build test && cd ..",
+    "build": "npm run clean && tsc && rollup -c rollup.config.mjs",
     "clean": "rimraf ./dist",
     "watch": "tsc --watch",
     "prepublishOnly": "npm run build"
   },
   "author": "Vladimír Fojtík <vladimir@fojtik.dev>, Břetislav Štěpán <info@bretislavstepan.cz>",
   "license": "MIT",
-  "dependencies": {
-    "@capacitor/core": "^3.3.4"
+  "engines": {
+    "node": ">=22.0.0"
   },
   "devDependencies": {
-    "@capacitor/android": "^3.3.4",
-    "@capacitor/ios": "^3.3.4",
-    "rimraf": "^3.0.0",
-    "typescript": "^4.5.4"
+    "@capacitor/android": "^8.6.0",
+    "@capacitor/core": "^8.6.0",
+    "@capacitor/ios": "^8.6.0",
+    "rimraf": "^6.1.0",
+    "rollup": "^4.53.2",
+    "typescript": "^5.9.3"
   },
-  "files": [
-    "dist/",
-    "ios/",
-    "android/",
-    "CapacitorCalendar.podspec"
-  ],
+  "peerDependencies": {
+    "@capacitor/core": ">=8.0.0"
+  },
   "keywords": [
     "capacitor",
     "plugin",
-    "native"
+    "native",
+    "calendar"
   ],
   "capacitor": {
     "ios": {
