@@ -18,9 +18,10 @@
   ],
   "scripts": {
     "verify": "npm run verify:web && npm run verify:ios && npm run verify:android",
-    "verify:web": "npm run build",
+    "verify:web": "npm run build && npm test",
     "verify:ios": "xcodebuild -scheme CapacitorCalendar -destination generic/platform=iOS",
     "verify:android": "cd android && ./gradlew clean build test && cd ..",
+    "test": "tsc -p tsconfig.test.json",
     "build": "npm run clean && tsc && rollup -c rollup.config.mjs",
     "clean": "rimraf ./dist",
     "watch": "tsc --watch",
