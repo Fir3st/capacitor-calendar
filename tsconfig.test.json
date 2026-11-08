@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "declaration": false,
+    "inlineSources": false,
+    "noEmit": true,
+    "sourceMap": false
+  },
+  "files": ["src/index.ts", "test/types.test.ts"]
+}
