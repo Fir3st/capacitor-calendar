@@ -36,7 +36,7 @@
     "@capacitor/android": "^8.6.0",
     "@capacitor/core": "^8.6.0",
     "@capacitor/ios": "^8.6.0",
-    "rimraf": "^6.1.0",
+    "rimraf": "^6.1.4",
     "rollup": "^4.53.2",
     "typescript": "^5.9.3"
   },
